@@ -13,22 +13,22 @@ We have a vibrant community of developers helping each other in our `Telegram gr
 *Stay tuned for library updates and new releases on our* `Telegram Channel <https://telegram.me/pythontelegrambotchannel>`_.
 
 .. image:: https://img.shields.io/pypi/v/python-telegram-bot-raw.svg
-   :target: https://pypi.org/project/python-telegram-bot/
+   :target: https://pypi.org/project/python-telegram-bot-raw/
    :alt: PyPi Package Version
 
 .. image:: https://img.shields.io/pypi/pyversions/python-telegram-bot-raw.svg
-   :target: https://pypi.org/project/python-telegram-bot/
+   :target: https://pypi.org/project/python-telegram-bot-raw/
    :alt: Supported Python versions
 
-.. image:: https://img.shields.io/badge/Bot%20API-5.0-blue?logo=telegram
+.. image:: https://img.shields.io/badge/Bot%20API-5.1-blue?logo=telegram
    :target: https://core.telegram.org/bots/api-changelog
    :alt: Supported Bot API versions
 
 .. image:: https://img.shields.io/pypi/dm/python-telegram-bot-raw
-   :target: https://pypistats.org/packages/python-telegram-bot
+   :target: https://pypistats.org/packages/python-telegram-bot-raw
    :alt: PyPi Package Monthly Download
 
-.. image:: https://img.shields.io/badge/docs-latest-af1a97.svg
+.. image:: https://readthedocs.org/projects/python-telegram-bot/badge/?version=stable
    :target: https://python-telegram-bot.readthedocs.io/
    :alt: Documentation Status
 
@@ -105,7 +105,7 @@ Installing both ``python-telegram-bot`` and ``python-telegram-bot-raw`` in conju
 Telegram API support
 ====================
 
-All types and methods of the Telegram Bot API **5.0** are supported.
+All types and methods of the Telegram Bot API **5.1** are supported.
 
 ==========
 Installing
@@ -136,6 +136,15 @@ Note
 ----
 
 Installing the `.tar.gz` archive available on PyPi directly via `pip` will *not* work as expected, as `pip` does not recognize that it should use `setup-raw.py` instead of `setup.py`.
+
+---------------------
+Optional Dependencies
+---------------------
+
+PTB can be installed with optional dependencies:
+
+* ``pip install python-telegram-bot-raw[passport]`` installs the `cryptography <https://cryptography.io>`_ library. Use this, if you want to use Telegram Passport related functionality.
+* ``pip install python-telegram-bot-raw[ujson]`` installs the `ujson <https://pypi.org/project/ujson/>`_ library. It will then be used for JSON de- & encoding, which can bring speed up compared to the standard `json <https://docs.python.org/3/library/json.html>`_ library.
 
 ===============
 Getting started
@@ -202,6 +211,11 @@ Contributing
 ============
 
 Contributions of all sizes are welcome. Please review our `contribution guidelines <https://github.com/python-telegram-bot/python-telegram-bot/blob/master/.github/CONTRIBUTING.rst>`_ to get started. You can also help by `reporting bugs <https://github.com/python-telegram-bot/python-telegram-bot/issues/new>`_.
+
+========
+Donating
+========
+Occasionally we are asked if we accept donations to support the development. While we appreciate the thought, maintaining PTB is our hobby and we have almost no running costs for it. We therefore have nothing set up to accept donations. If you still want to donate, we kindly ask you to donate to another open source project/initiative of your choice instead.
 
 =======
 License

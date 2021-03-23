@@ -53,8 +53,9 @@ def get_setup_kwargs(raw=False):
 
     fn = os.path.join('telegram', 'version.py')
     with open(fn) as fh:
-        code = compile(fh.read(), fn, 'exec')
-        exec(code)
+        for line in fh.readlines():
+            if line.startswith('__version__'):
+                exec(line)
 
     with open(readme, 'r', encoding='utf-8') as fd:
 
@@ -84,7 +85,9 @@ def get_setup_kwargs(raw=False):
             install_requires=requirements,
             extras_require={
                 'json': 'ujson',
-                'socks': 'PySocks'
+                'socks': 'PySocks',
+                # 3.4-3.4.3 contained some cyclical import bugs
+                'passport': 'cryptography!=3.4,!=3.4.1,!=3.4.2,!=3.4.3',
             },
             include_package_data=True,
             classifiers=[

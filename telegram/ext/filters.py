@@ -91,7 +91,7 @@ class BaseFilter(ABC):
 
 
     If you want to create your own filters create a class inheriting from either
-    :class:`MessageFilter` or :class:`UpdateFilter` and implement a :meth:``filter`` method that
+    :class:`MessageFilter` or :class:`UpdateFilter` and implement a :meth:`filter` method that
     returns a boolean: :obj:`True` if the message should be
     handled, :obj:`False` otherwise.
     Note that the filters work only as class instances, not
@@ -148,7 +148,8 @@ class MessageFilter(BaseFilter, ABC):
     """Base class for all Message Filters. In contrast to :class:`UpdateFilter`, the object passed
     to :meth:`filter` is ``update.effective_message``.
 
-    Please see :class:`telegram.ext.BaseFilter` for details on how to create custom filters.
+    Please see :class:`telegram.ext.filters.BaseFilter` for details on how to create custom
+    filters.
 
     Attributes:
         name (:obj:`str`): Name for this filter. Defaults to the type of filter.
@@ -176,11 +177,12 @@ class MessageFilter(BaseFilter, ABC):
 
 
 class UpdateFilter(BaseFilter, ABC):
-    """Base class for all Update Filters. In contrast to :class:`UpdateFilter`, the object
+    """Base class for all Update Filters. In contrast to :class:`MessageFilter`, the object
     passed to :meth:`filter` is ``update``, which allows to create filters like
     :attr:`Filters.update.edited_message`.
 
-    Please see :class:`telegram.ext.BaseFilter` for details on how to create custom filters.
+    Please see :class:`telegram.ext.filters.BaseFilter` for details on how to create custom
+    filters.
 
     Attributes:
         name (:obj:`str`): Name for this filter. Defaults to the type of filter.
@@ -316,7 +318,7 @@ class MergedFilter(UpdateFilter):
 
 class XORFilter(UpdateFilter):
     """Convenience filter acting as wrapper for :class:`MergedFilter` representing the an XOR gate
-    for two filters
+    for two filters.
 
     Args:
         base_filter: Filter 1 of the merged filter.
@@ -495,7 +497,7 @@ class Filters:
             def filter(self, message: Message) -> bool:
                 return bool(
                     message.entities
-                    and any([e.type == MessageEntity.BOT_COMMAND for e in message.entities])
+                    and any(e.type == MessageEntity.BOT_COMMAND for e in message.entities)
                 )
 
         def __call__(  # type: ignore[override]
@@ -1003,6 +1005,15 @@ officedocument.wordprocessingml.document")``.
             :attr: `telegram.Message.supergroup_chat_created` or
             :attr: `telegram.Message.channel_chat_created`."""
 
+        class _MessageAutoDeleteTimerChanged(MessageFilter):
+            name = 'MessageAutoDeleteTimerChanged'
+
+            def filter(self, message: Message) -> bool:
+                return bool(message.message_auto_delete_timer_changed)
+
+        message_auto_delete_timer_changed = _MessageAutoDeleteTimerChanged()
+        """Messages that contain :attr:`message_auto_delete_timer_changed`"""
+
         class _Migrate(MessageFilter):
             name = 'Filters.status_update.migrate'
 
@@ -1040,6 +1051,33 @@ officedocument.wordprocessingml.document")``.
         proximity_alert_triggered = _ProximityAlertTriggered()
         """Messages that contain :attr:`telegram.Message.proximity_alert_triggered`."""
 
+        class _VoiceChatStarted(MessageFilter):
+            name = 'Filters.status_update.voice_chat_started'
+
+            def filter(self, message: Message) -> bool:
+                return bool(message.voice_chat_started)
+
+        voice_chat_started = _VoiceChatStarted()
+        """Messages that contain :attr:`telegram.Message.voice_chat_started`."""
+
+        class _VoiceChatEnded(MessageFilter):
+            name = 'Filters.status_update.voice_chat_ended'
+
+            def filter(self, message: Message) -> bool:
+                return bool(message.voice_chat_ended)
+
+        voice_chat_ended = _VoiceChatEnded()
+        """Messages that contain :attr:`telegram.Message.voice_chat_ended`."""
+
+        class _VoiceChatParticipantsInvited(MessageFilter):
+            name = 'Filters.status_update.voice_chat_participants_invited'
+
+            def filter(self, message: Message) -> bool:
+                return bool(message.voice_chat_participants_invited)
+
+        voice_chat_participants_invited = _VoiceChatParticipantsInvited()
+        """Messages that contain :attr:`telegram.Message.voice_chat_participants_invited`."""
+
         name = 'Filters.status_update'
 
         def filter(self, message: Update) -> bool:
@@ -1050,10 +1088,14 @@ officedocument.wordprocessingml.document")``.
                 or self.new_chat_photo(message)
                 or self.delete_chat_photo(message)
                 or self.chat_created(message)
+                or self.message_auto_delete_timer_changed(message)
                 or self.migrate(message)
                 or self.pinned_message(message)
                 or self.connected_website(message)
                 or self.proximity_alert_triggered(message)
+                or self.voice_chat_started(message)
+                or self.voice_chat_ended(message)
+                or self.voice_chat_participants_invited(message)
             )
 
     status_update = _StatusUpdate()
@@ -1075,18 +1117,35 @@ officedocument.wordprocessingml.document")``.
         left_chat_member: Messages that contain
             :attr:`telegram.Message.left_chat_member`.
         migrate: Messages that contain
-            :attr:`telegram.Message.migrate_from_chat_id` or
-            :attr: `telegram.Message.migrate_from_chat_id`.
+            :attr:`telegram.Message.migrate_to_chat_id` or
+            :attr:`telegram.Message.migrate_from_chat_id`.
         new_chat_members: Messages that contain
             :attr:`telegram.Message.new_chat_members`.
         new_chat_photo: Messages that contain
             :attr:`telegram.Message.new_chat_photo`.
         new_chat_title: Messages that contain
             :attr:`telegram.Message.new_chat_title`.
+        message_auto_delete_timer_changed: Messages that contain
+            :attr:`message_auto_delete_timer_changed`.
+
+            .. versionadded:: 13.4
         pinned_message: Messages that contain
             :attr:`telegram.Message.pinned_message`.
         proximity_alert_triggered: Messages that contain
             :attr:`telegram.Message.proximity_alert_triggered`.
+        voice_chat_started: Messages that contain
+            :attr:`telegram.Message.voice_chat_started`.
+
+            .. versionadded:: 13.4
+        voice_chat_ended: Messages that contain
+            :attr:`telegram.Message.voice_chat_ended`.
+
+            .. versionadded:: 13.4
+        voice_chat_participants_invited: Messages that contain
+            :attr:`telegram.Message.voice_chat_participants_invited`.
+
+            .. versionadded:: 13.4
+
     """
 
     class _Forwarded(MessageFilter):
@@ -1413,7 +1472,8 @@ officedocument.wordprocessingml.document")``.
             user_id(:class:`telegram.utils.types.SLT[int]`, optional):
                 Which user ID(s) to allow through.
             username(:class:`telegram.utils.types.SLT[str]`, optional):
-                Which username(s) to allow through. Leading '@'s in usernames will be discarded.
+                Which username(s) to allow through. Leading ``'@'`` s in usernames will be
+                discarded.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no user
                 is specified in :attr:`user_ids` and :attr:`usernames`. Defaults to :obj:`False`
 
@@ -1422,8 +1482,8 @@ officedocument.wordprocessingml.document")``.
 
         Attributes:
             user_ids(set(:obj:`int`), optional): Which user ID(s) to allow through.
-            usernames(set(:obj:`str`), optional): Which username(s) (without leading '@') to allow
-                through.
+            usernames(set(:obj:`str`), optional): Which username(s) (without leading ``'@'``) to
+                allow through.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no user
                 is specified in :attr:`user_ids` and :attr:`usernames`.
 
@@ -1456,7 +1516,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which username(s) to allow through.
-                    Leading '@'s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().add_usernames(username)
 
@@ -1477,7 +1537,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which username(s) to disallow through.
-                    Leading '@'s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().remove_usernames(username)
 
@@ -1511,7 +1571,8 @@ officedocument.wordprocessingml.document")``.
             bot_id(:class:`telegram.utils.types.SLT[int]`, optional):
                 Which bot ID(s) to allow through.
             username(:class:`telegram.utils.types.SLT[str]`, optional):
-                Which username(s) to allow through. Leading '@'s in usernames will be discarded.
+                Which username(s) to allow through. Leading ``'@'`` s in usernames will be
+                discarded.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no user
                 is specified in :attr:`bot_ids` and :attr:`usernames`. Defaults to :obj:`False`
 
@@ -1520,8 +1581,8 @@ officedocument.wordprocessingml.document")``.
 
         Attributes:
             bot_ids(set(:obj:`int`), optional): Which bot ID(s) to allow through.
-            usernames(set(:obj:`str`), optional): Which username(s) (without leading '@') to allow
-                through.
+            usernames(set(:obj:`str`), optional): Which username(s) (without leading ``'@'``) to
+                allow through.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no bot
                 is specified in :attr:`bot_ids` and :attr:`usernames`.
 
@@ -1554,7 +1615,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which username(s) to allow through.
-                    Leading '@'s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().add_usernames(username)
 
@@ -1576,7 +1637,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which username(s) to disallow through.
-                    Leading '@'s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().remove_usernames(username)
 
@@ -1610,7 +1671,7 @@ officedocument.wordprocessingml.document")``.
                 Which chat ID(s) to allow through.
             username(:class:`telegram.utils.types.SLT[str]`, optional):
                 Which username(s) to allow through.
-                Leading `'@'` s in usernames will be discarded.
+                Leading ``'@'`` s in usernames will be discarded.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no chat
                 is specified in :attr:`chat_ids` and :attr:`usernames`. Defaults to :obj:`False`
 
@@ -1619,8 +1680,8 @@ officedocument.wordprocessingml.document")``.
 
         Attributes:
             chat_ids(set(:obj:`int`), optional): Which chat ID(s) to allow through.
-            usernames(set(:obj:`str`), optional): Which username(s) (without leading '@') to allow
-                through.
+            usernames(set(:obj:`str`), optional): Which username(s) (without leading ``'@'``) to
+                allow through.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no chat
                 is specified in :attr:`chat_ids` and :attr:`usernames`.
 
@@ -1636,7 +1697,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which username(s) to allow through.
-                    Leading `'@'` s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().add_usernames(username)
 
@@ -1657,7 +1718,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which username(s) to disallow through.
-                    Leading '@'s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().remove_usernames(username)
 
@@ -1677,15 +1738,21 @@ officedocument.wordprocessingml.document")``.
         username.
 
         Examples:
-            * To filter for messages forwarded from a channel with ID ``-1234``, use
-              ``MessageHandler(Filters.sender_chat(-1234), callback_method)``.
+            * To filter for messages forwarded to a discussion group from a channel with ID
+              ``-1234``, use ``MessageHandler(Filters.sender_chat(-1234), callback_method)``.
             * To filter for messages of anonymous admins in a super group with username
               ``@anonymous``, use
               ``MessageHandler(Filters.sender_chat(username='anonymous'), callback_method)``.
-            * To filter for messages forwarded from *any* channel, use
+            * To filter for messages forwarded to a discussion group from *any* channel, use
               ``MessageHandler(Filters.sender_chat.channel, callback_method)``.
             * To filter for messages of anonymous admins in *any* super group, use
               ``MessageHandler(Filters.sender_chat.super_group, callback_method)``.
+
+        Note:
+            Remember, ``sender_chat`` is also set for messages in a channel as the channel itself,
+            so when your bot is an admin in a channel and the linked discussion group, you would
+            receive the message twice (once from inside the channel, once inside the discussion
+            group).
 
         Warning:
             :attr:`chat_ids` will return a *copy* of the saved chat ids as :class:`frozenset`. This
@@ -1700,7 +1767,7 @@ officedocument.wordprocessingml.document")``.
                 Which sender chat chat ID(s) to allow through.
             username(:class:`telegram.utils.types.SLT[str]`, optional):
                 Which sender chat username(s) to allow through.
-                Leading `'@'` s in usernames will be discarded.
+                Leading ``'@'`` s in usernames will be discarded.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no sender
                 chat is specified in :attr:`chat_ids` and :attr:`usernames`. Defaults to
                 :obj:`False`
@@ -1711,7 +1778,7 @@ officedocument.wordprocessingml.document")``.
         Attributes:
             chat_ids(set(:obj:`int`), optional): Which sender chat chat ID(s) to allow through.
             usernames(set(:obj:`str`), optional): Which sender chat username(s) (without leading
-                '@') to allow through.
+                ``'@'``) to allow through.
             allow_empty(:obj:`bool`, optional): Whether updates should be processed, if no sender
                 chat is specified in :attr:`chat_ids` and :attr:`usernames`.
             super_group: Messages whose sender chat is a super group.
@@ -1735,7 +1802,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which sender chat username(s) to allow through.
-                    Leading `'@'` s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().add_usernames(username)
 
@@ -1756,7 +1823,7 @@ officedocument.wordprocessingml.document")``.
             Args:
                 username(:class:`telegram.utils.types.SLT[str]`, optional):
                     Which sender chat username(s) to disallow through.
-                    Leading `'@'` s in usernames will be discarded.
+                    Leading ``'@'`` s in usernames will be discarded.
             """
             return super().remove_usernames(username)
 
@@ -1827,6 +1894,7 @@ officedocument.wordprocessingml.document")``.
         basketball = _DiceEmoji('🏀', 'basketball')
         football = _DiceEmoji('⚽')
         slot_machine = _DiceEmoji('🎰')
+        bowling = _DiceEmoji('🎳', 'bowling')
 
     dice = _Dice()
     """Dice Messages. If an integer or a list of integers is passed, it filters messages to only
@@ -1859,6 +1927,11 @@ officedocument.wordprocessingml.document")``.
             as for :attr:`Filters.dice`.
         slot_machine: Dice messages with the emoji 🎰. Passing a list of integers is supported just
             as for :attr:`Filters.dice`.
+        bowling: Dice messages with the emoji 🎳. Passing a list of integers is supported just
+            as for :attr:`Filters.dice`.
+
+            .. versionadded:: 13.4
+
     """
 
     class language(MessageFilter):
@@ -1892,7 +1965,7 @@ officedocument.wordprocessingml.document")``.
             """"""  # remove method from docs
             return bool(
                 message.from_user.language_code
-                and any([message.from_user.language_code.startswith(x) for x in self.lang])
+                and any(message.from_user.language_code.startswith(x) for x in self.lang)
             )
 
     class _UpdateType(UpdateFilter):
